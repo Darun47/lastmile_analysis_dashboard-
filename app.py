@@ -8,8 +8,8 @@ import os
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.express as px
-
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 st.set_page_config(page_title="Delivery Dashboard – FA2", layout="wide")
 st.title("📦 Last-mile Delivery Performance Dashboard (FA-2)")
@@ -21,7 +21,7 @@ DATA_PATH = "Last mile Delivery Data.csv"
 if not os.path.exists(DATA_PATH):
     st.error(
         "❌ Dataset not found.\n\n"
-        "Make sure you uploaded **'Last mile Delivery Data.csv'** "
+        "Upload **'Last mile Delivery Data.csv'** "
         "to the SAME folder as app.py in your GitHub repo."
     )
     st.stop()
@@ -96,49 +96,65 @@ c3.metric("Late Deliveries (%)", f"{round(filtered['Late'].mean() * 100, 2)}%")
 
 st.markdown("---")
 
+# -------------------- MATPLOTLIB GRAPHS --------------------
+
+def render_matplotlib(fig):
+    st.pyplot(fig)
+    plt.close(fig)
+
 # ---------- VISUAL 1: Weather ----------
 st.subheader("⛅ Delay Analyzer: Weather")
 weather_grp = filtered.groupby("Weather")["Delivery_Time"].mean().reset_index()
-st.plotly_chart(px.bar(weather_grp, x="Weather", y="Delivery_Time"), use_container_width=True)
+
+fig1, ax1 = plt.subplots(figsize=(7,4))
+sns.barplot(data=weather_grp, x="Weather", y="Delivery_Time", ax=ax1)
+ax1.set_ylabel("Avg Delivery Time (mins)")
+render_matplotlib(fig1)
 
 # ---------- VISUAL 1b: Traffic ----------
 st.subheader("🚦 Delay Analyzer: Traffic")
 traffic_grp = filtered.groupby("Traffic")["Delivery_Time"].mean().reset_index()
-st.plotly_chart(px.bar(traffic_grp, x="Traffic", y="Delivery_Time"), use_container_width=True)
+
+fig2, ax2 = plt.subplots(figsize=(7,4))
+sns.barplot(data=traffic_grp, x="Traffic", y="Delivery_Time", ax=ax2)
+render_matplotlib(fig2)
 
 st.markdown("---")
 
 # ---------- VISUAL 2: Vehicle ----------
 st.subheader("🚚 Vehicle Performance")
 vehicle_grp = filtered.groupby("Vehicle")["Delivery_Time"].mean().reset_index()
-st.plotly_chart(px.bar(vehicle_grp, x="Vehicle", y="Delivery_Time"), use_container_width=True)
+
+fig3, ax3 = plt.subplots(figsize=(7,4))
+sns.barplot(data=vehicle_grp, x="Vehicle", y="Delivery_Time", ax=ax3)
+render_matplotlib(fig3)
 
 st.markdown("---")
 
 # ---------- VISUAL 3: Agent Scatter ----------
 st.subheader("🧍 Agent Performance (Rating vs Time)")
-st.plotly_chart(
-    px.scatter(filtered, x="Agent_Rating", y="Delivery_Time", color="Age_Group"),
-    use_container_width=True
-)
+
+fig4, ax4 = plt.subplots(figsize=(7,4))
+sns.scatterplot(data=filtered, x="Agent_Rating", y="Delivery_Time", hue="Age_Group", ax=ax4)
+render_matplotlib(fig4)
 
 st.markdown("---")
 
 # ---------- VISUAL 4: Area ----------
 st.subheader("🌍 Regional Bottlenecks (Area)")
 area_grp = filtered.groupby("Area")["Delivery_Time"].mean().reset_index()
-st.plotly_chart(
-    px.bar(area_grp, x="Area", y="Delivery_Time", color="Delivery_Time"),
-    use_container_width=True
-)
+
+fig5, ax5 = plt.subplots(figsize=(8,4))
+sns.barplot(data=area_grp, x="Area", y="Delivery_Time", ax=ax5)
+render_matplotlib(fig5)
 
 st.markdown("---")
 
 # ---------- VISUAL 5: Category ----------
 st.subheader("📦 Category Delivery Distribution")
-st.plotly_chart(
-    px.box(filtered, x="Category", y="Delivery_Time"),
-    use_container_width=True
-)
+
+fig6, ax6 = plt.subplots(figsize=(8,4))
+sns.boxplot(data=filtered, x="Category", y="Delivery_Time", ax=ax6)
+render_matplotlib(fig6)
 
 st.caption("Late Delivery = Delivery_Time > mean + 1*std (FA-2 rule).")
